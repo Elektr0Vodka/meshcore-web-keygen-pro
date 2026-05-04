@@ -2,6 +2,40 @@ import * as nobleEd25519 from './noble-ed25519.js';
 
 const ED25519_ORDER = 0x1000000000000000000000000000000014def9dea2f79cd65812631a5cf5d3edn;
 const RESERVED_PREFIXES = new Set(['00', 'FF']);
+const HASH_WORKER_SCRIPT = `
+self.onmessage = async (event) => {
+  const { type, batchSize } = event.data;
+  if (type !== 'generate') return;
+
+  const scalarWords = new Uint32Array(batchSize * 8);
+  const suffixes = new Uint8Array(batchSize * 32);
+
+  for (let index = 0; index < batchSize; index += 1) {
+    const seed = crypto.getRandomValues(new Uint8Array(32));
+    const digest = new Uint8Array(await crypto.subtle.digest('SHA-512', seed));
+    const wordOffset = index * 8;
+    const suffixOffset = index * 32;
+    const clamped0 = digest[0] & 248;
+    const clamped31 = (digest[31] & 63) | 64;
+
+    scalarWords[wordOffset] = clamped0 | (digest[1] << 8) | (digest[2] << 16) | (digest[3] << 24);
+    scalarWords[wordOffset + 1] = digest[4] | (digest[5] << 8) | (digest[6] << 16) | (digest[7] << 24);
+    scalarWords[wordOffset + 2] = digest[8] | (digest[9] << 8) | (digest[10] << 16) | (digest[11] << 24);
+    scalarWords[wordOffset + 3] = digest[12] | (digest[13] << 8) | (digest[14] << 16) | (digest[15] << 24);
+    scalarWords[wordOffset + 4] = digest[16] | (digest[17] << 8) | (digest[18] << 16) | (digest[19] << 24);
+    scalarWords[wordOffset + 5] = digest[20] | (digest[21] << 8) | (digest[22] << 16) | (digest[23] << 24);
+    scalarWords[wordOffset + 6] = digest[24] | (digest[25] << 8) | (digest[26] << 16) | (digest[27] << 24);
+    scalarWords[wordOffset + 7] = digest[28] | (digest[29] << 8) | (digest[30] << 16) | (clamped31 << 24);
+
+    for (let byte = 0; byte < 32; byte += 1) suffixes[suffixOffset + byte] = digest[32 + byte];
+  }
+
+  self.postMessage(
+    { type: 'results', scalarWords: scalarWords.buffer, suffixes: suffixes.buffer },
+    [scalarWords.buffer, suffixes.buffer]
+  );
+};
+`;
 
 const state = {
   running: false,
@@ -10,6 +44,9 @@ const state = {
   result: null,
   progressTimer: null,
   wasmWorkers: [],
+  hashWorkers: [],
+  hashWorkerUrl: null,
+  hashWorkerCount: 0,
   activeSearch: null,
   gpuScanner: null,
   gpuAvailable: false,
@@ -30,6 +67,7 @@ const gpuAccelerationHint = document.getElementById('gpuAccelerationHint');
 const wasmWorkerCountInput = document.getElementById('wasmWorkerCount');
 const wasmBatchSizeInput = document.getElementById('wasmBatchSize');
 const gpuBatchSizeInput = document.getElementById('gpuBatchSize');
+const gpuHashWorkerCountInput = document.getElementById('gpuHashWorkerCount');
 const jsBatchSizeInput = document.getElementById('jsBatchSize');
 const progressContainer = document.getElementById('progressContainer');
 const progressText = document.getElementById('progressText');
@@ -224,6 +262,7 @@ function setRunning(isRunning) {
   wasmWorkerCountInput.disabled = isRunning;
   wasmBatchSizeInput.disabled = isRunning;
   gpuBatchSizeInput.disabled = isRunning;
+  gpuHashWorkerCountInput.disabled = isRunning;
   jsBatchSizeInput.disabled = isRunning;
   progressContainer.style.display = isRunning ? 'block' : 'none';
 }
@@ -295,7 +334,7 @@ function runWasmPrefixSearch(config, limits, watchlist, tuning) {
         targetPrefix: config.prefix,
         batchSize: tuning.wasmBatchSize,
         adaptiveBatching: true,
-        targetBatchMs: 16,
+        targetBatchMs: 20,
         minBatchSize: 512,
         maxBatchSize: Math.max(65536, tuning.wasmBatchSize),
         progressIntervalMs: 150
@@ -312,9 +351,21 @@ async function ensureGpuScanner(tuning = null) {
   const scanner = new gpuModule.WebGpuEd25519Scanner();
   const ready = await scanner.initialize();
   if (!ready) return null;
-  await scanner.autotuneWorkgroupSize(tuning?.gpuBatchSize ?? 4096);
+  await scanner.autotuneWorkgroupSize(tuning?.gpuBatchSize ?? 131072);
   state.gpuScanner = scanner;
   return scanner;
+}
+
+function ensureHashWorkers(count) {
+  if (state.hashWorkers.length === count && state.hashWorkerCount === count) return;
+  for (const worker of state.hashWorkers) worker.terminate();
+  state.hashWorkers = [];
+  state.hashWorkerCount = count;
+  if (state.hashWorkerUrl) URL.revokeObjectURL(state.hashWorkerUrl);
+  state.hashWorkerUrl = URL.createObjectURL(new Blob([HASH_WORKER_SCRIPT], { type: 'application/javascript' }));
+  for (let i = 0; i < count; i += 1) {
+    state.hashWorkers.push(new Worker(state.hashWorkerUrl));
+  }
 }
 
 function prefixToBytes(prefix) {
@@ -362,13 +413,67 @@ async function generateCandidateBatch(size) {
   return { scalarWords: packScalarWords(scalars), suffixes };
 }
 
+async function generateGpuCandidateBatch(size, workerCount) {
+  ensureHashWorkers(workerCount);
+  const activeWorkers = state.hashWorkers.slice(0, workerCount);
+  if (!activeWorkers.length) throw new Error('No GPU hash workers are available.');
+  const perWorker = Math.ceil(size / activeWorkers.length);
+  const batches = await Promise.all(activeWorkers.map((worker) => new Promise((resolve, reject) => {
+    const timeout = setTimeout(() => {
+      worker.removeEventListener('message', onMessage);
+      worker.removeEventListener('error', onError);
+      reject(new Error('GPU hash worker timed out.'));
+    }, 30000);
+    const onMessage = (event) => {
+      if (event.data.type !== 'results') return;
+      clearTimeout(timeout);
+      worker.removeEventListener('message', onMessage);
+      worker.removeEventListener('error', onError);
+      resolve({
+        scalarWords: new Uint32Array(event.data.scalarWords),
+        suffixes: new Uint8Array(event.data.suffixes)
+      });
+    };
+    const onError = (event) => {
+      clearTimeout(timeout);
+      worker.removeEventListener('message', onMessage);
+      worker.removeEventListener('error', onError);
+      reject(event instanceof ErrorEvent ? event.error || new Error(event.message) : event);
+    };
+    worker.addEventListener('message', onMessage);
+    worker.addEventListener('error', onError);
+    worker.postMessage({ type: 'generate', batchSize: perWorker });
+  })));
+
+  const scalarWords = new Uint32Array(batches.reduce((sum, batch) => sum + batch.scalarWords.length, 0));
+  const suffixes = new Uint8Array(batches.reduce((sum, batch) => sum + batch.suffixes.length, 0));
+  let wordOffset = 0;
+  let suffixOffset = 0;
+  for (const batch of batches) {
+    scalarWords.set(batch.scalarWords, wordOffset);
+    suffixes.set(batch.suffixes, suffixOffset);
+    wordOffset += batch.scalarWords.length;
+    suffixOffset += batch.suffixes.length;
+  }
+  return { scalarWords, suffixes };
+}
+
 async function runJsProSearch(config, limits, watchlist, useGpu, tuning) {
   const scanner = useGpu && config.hasPrefix ? await ensureGpuScanner(tuning) : null;
   const batchSize = scanner ? tuning.gpuBatchSize : tuning.jsBatchSize;
   const prefixBytes = prefixToBytes(config.prefix);
+  const queueGpuBatch = () => generateGpuCandidateBatch(batchSize, tuning.gpuHashWorkers)
+    .catch((error) => {
+      if (state.running) throw error;
+      return null;
+    });
+  let nextGpuBatch = scanner ? queueGpuBatch() : null;
 
   while (state.running) {
-    const batch = await generateCandidateBatch(batchSize);
+    const batch = scanner ? await nextGpuBatch : await generateCandidateBatch(batchSize);
+    if (!batch) break;
+    if (!state.running) break;
+    if (scanner) nextGpuBatch = queueGpuBatch();
     const candidateCount = batch.scalarWords.length / 8;
     let indexes = [...Array(candidateCount).keys()];
     if (scanner && config.hasPrefix) {
@@ -388,6 +493,7 @@ async function runJsProSearch(config, limits, watchlist, useGpu, tuning) {
       const matches = findWatchlistMatches(keypair.publicKey, watchlist);
       if (matches.length) state.watchlistMatches.push({ ...keypair, patterns: matches });
       if (matchesPrimary(keypair.publicKey, config)) {
+        state.running = false;
         return { ...keypair, validation: validateKeypair(keypair.privateKey, keypair.publicKey), watchlistMatches: state.watchlistMatches };
       }
     }
@@ -443,7 +549,8 @@ function readTuning() {
   return {
     wasmWorkers: parseTuningNumber(wasmWorkerCountInput.value, hardwareThreads, 'WASM workers', 1, Math.max(64, hardwareThreads * 2)),
     wasmBatchSize: parseTuningNumber(wasmBatchSizeInput.value, 4096, 'WASM batch size', 512, 1000000),
-    gpuBatchSize: parseTuningNumber(gpuBatchSizeInput.value, 4096, 'GPU batch size', 128, 1000000),
+    gpuBatchSize: parseTuningNumber(gpuBatchSizeInput.value, 131072, 'GPU batch size', 128, 1000000),
+    gpuHashWorkers: parseTuningNumber(gpuHashWorkerCountInput.value, Math.min(6, hardwareThreads), 'GPU hash workers', 1, Math.max(64, hardwareThreads * 2)),
     jsBatchSize: parseTuningNumber(jsBatchSizeInput.value, 192, 'JS batch size', 16, 100000)
   };
 }
@@ -474,7 +581,7 @@ form.addEventListener('submit', async (event) => {
     setRunning(true);
     const useGpu = gpuAccelerationToggle.checked && state.gpuAvailable && config.hasPrefix;
     const useWasm = config.mode === 'prefix' || config.mode === 'simple';
-    startProgress(config, useGpu ? `webgpu pro | batch ${tuning.gpuBatchSize.toLocaleString()}` : useWasm ? `${tuning.wasmWorkers} wasm workers | batch ${tuning.wasmBatchSize.toLocaleString()}` : `js pro | batch ${tuning.jsBatchSize.toLocaleString()}`);
+    startProgress(config, useGpu ? `webgpu pro | batch ${tuning.gpuBatchSize.toLocaleString()} | ${tuning.gpuHashWorkers} hash workers` : useWasm ? `${tuning.wasmWorkers} wasm workers | batch ${tuning.wasmBatchSize.toLocaleString()}` : `js pro | batch ${tuning.jsBatchSize.toLocaleString()}`);
     const result = useWasm && !watchlist.length && !useGpu
       ? await runWasmPrefixSearch(config, limits, watchlist, tuning)
       : await runJsProSearch(config, limits, watchlist, useGpu, tuning);
