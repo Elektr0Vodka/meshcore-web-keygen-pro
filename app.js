@@ -247,7 +247,6 @@ function startProgress(config, backend) {
 
 function stopSearch() {
   state.running = false;
-  if (state.activeSearch) state.activeSearch.done = true;
   for (const worker of state.wasmWorkers) worker.postMessage({ type: 'stop' });
 }
 
