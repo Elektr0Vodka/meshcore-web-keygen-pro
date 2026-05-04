@@ -8,7 +8,11 @@ Generates Ed25519 key pairs where the public key starts with a specific hex pref
 
 ## Features
 
-- Generate Ed25519 keys with custom hex prefixes (1-8 characters)
+- Generate Ed25519 keys with custom hex prefixes up to 64 characters
+- Python-style pro pattern modes: simple first-two, cosmetic 2/4/6/8, and prefix + cosmetic
+- Watchlist monitoring using `FIRST...LAST | Description` patterns
+- Optional WebGPU acceleration for prefix-gated searches
+- Generation tuning controls for GPU batch size, WASM worker count, WASM batch size, and JS fallback batch size
 - Real-time progress display (attempts, speed, time)
 - JSON export of generated keys
 - Import instructions for MeshCore nodes
@@ -96,13 +100,21 @@ Filename: `meshcore_[PREFIX]_[TIMESTAMP].json`
 - No network requests during generation
 - Keys never leave your device
 
-## Advanced Usage
+## Pro Modes
 
-For more complex key generation patterns (cosmetic patterns, longer prefixes, multi-processing), see the [Python version](https://github.com/agessaman/meshcore-keygen) which supports:
-- Multi-threaded generation for faster performance
-- Cosmetic pattern matching (palindromic keys, etc.)
-- Watchlist monitoring for multiple patterns
-- Advanced pattern modes and batch processing
+This web version includes the browser-safe pattern functions from the Python generator:
+- Prefix only, including prefixes longer than 8 characters
+- Simple first-two node ID search
+- Cosmetic 2/4/6/8 matching, where the first N hex characters match the last N characters or their reverse
+- Prefix + cosmetic matching
+- Watchlist monitoring while searching
+
+## Tuning
+
+The browser UI exposes performance controls:
+- Enable or disable GPU acceleration when WebGPU is available
+- Set WASM worker count, which maps to the number of Web Workers used by the WASM prefix engine
+- Tune GPU, WASM, and JS batch sizes with plain numbers or `K`/`M` suffixes
 
 ## Troubleshooting
 

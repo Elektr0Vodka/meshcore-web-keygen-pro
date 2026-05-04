@@ -3,54 +3,129 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MeshCore Custom Key Generator</title>
+    <title>MeshCore Pro Web Key Generator</title>
     <script>
         console.log('✓ Using Web Crypto API for Ed25519 key generation');
         console.log('✓ CPU cores available:', navigator.hardwareConcurrency || 'unknown');
     </script>
     <style>
+        :root {
+            --bg: #050608;
+            --panel: rgba(14, 16, 20, 0.94);
+            --panel-soft: rgba(22, 25, 31, 0.88);
+            --text: #e9edf4;
+            --muted: #b9c1cf;
+            --red: #df2020;
+            --blue: #1976e8;
+            --border: rgba(255,255,255,.14);
+            --max: 1180px;
+            --radius: 16px;
+        }
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
 
+        html {
+            scroll-behavior: smooth;
+        }
+
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            background:
+                radial-gradient(circle at 18% 18%, rgba(223,32,32,.15), transparent 28%),
+                radial-gradient(circle at 82% 28%, rgba(25,118,232,.14), transparent 30%),
+                linear-gradient(180deg, #090b10 0%, #06070a 48%, #030304 100%);
+            color: var(--text);
             min-height: 100vh;
-            padding: 20px;
+            overflow-x: hidden;
+            padding: 30px 20px;
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            background:
+                linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px);
+            background-size: 42px 42px;
+            opacity: .28;
+            mask-image: radial-gradient(circle at center, black, transparent 82%);
+        }
+
+        body::after {
+            content: "";
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            background: repeating-linear-gradient(
+                0deg,
+                rgba(255,255,255,.045),
+                rgba(255,255,255,.045) 1px,
+                transparent 1px,
+                transparent 4px
+            );
+            opacity: .11;
+            mix-blend-mode: overlay;
         }
 
         .container {
-            max-width: 800px;
+            position: relative;
+            z-index: 1;
+            max-width: var(--max);
             margin: 0 auto 40px auto;
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            background:
+                linear-gradient(135deg, rgba(255,255,255,.07), transparent 34%),
+                var(--panel);
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            box-shadow:
+                inset 0 0 0 1px rgba(255,255,255,.035),
+                0 24px 55px rgba(0,0,0,.38);
             overflow: hidden;
         }
 
         .header {
-            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
-            color: white;
-            padding: 30px;
-            text-align: center;
+            background: rgba(3,4,6,.88);
+            color: var(--text);
+            padding: 30px 34px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+            box-shadow: 0 14px 35px rgba(0,0,0,.42);
         }
 
         .header h1 {
-            font-size: 2.5em;
+            font-size: clamp(2rem, 5vw, 4.7rem);
+            line-height: .9;
             margin-bottom: 10px;
-            font-weight: 300;
+            text-transform: uppercase;
+            letter-spacing: -2px;
+            font-weight: 1000;
+            font-style: italic;
+            color: transparent;
+            background: linear-gradient(180deg, #f4f4f4, #a4a4a4 42%, #4d4d4d 52%, #e6e6e6 72%, #777);
+            -webkit-background-clip: text;
+            background-clip: text;
+            filter: drop-shadow(0 6px 0 #020202) drop-shadow(0 0 16px rgba(255,255,255,.12));
         }
 
         .header p {
-            font-size: 1.1em;
-            opacity: 0.9;
+            color: #e1e1e1;
+            font-size: clamp(1rem, 2vw, 1.35rem);
+            font-weight: 900;
+            font-style: italic;
+            letter-spacing: .12em;
+            text-transform: uppercase;
+            text-shadow: 0 3px 0 #000;
         }
 
         .content {
-            padding: 40px;
+            padding: 34px;
         }
 
         .form-group {
@@ -61,23 +136,29 @@
             display: block;
             margin-bottom: 8px;
             font-weight: 600;
-            color: #2c3e50;
+            color: var(--text);
             font-size: 1.1em;
         }
 
         input[type="text"], select {
             width: 100%;
             padding: 15px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
             font-size: 16px;
+            color: var(--text);
+            background: rgba(255,255,255,.045);
             transition: border-color 0.3s ease;
         }
 
         input[type="text"]:focus, select:focus {
             outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            border-color: rgba(58,139,255,.72);
+            box-shadow: 0 0 22px rgba(58,139,255,.18), inset 0 0 18px rgba(58,139,255,.08);
+        }
+
+        select option {
+            color: #050608;
         }
 
         .hex-input {
@@ -94,34 +175,39 @@
         .btn {
             flex: 1;
             padding: 15px 30px;
-            border: none;
-            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,.16);
+            border-radius: 12px;
             font-size: 16px;
-            font-weight: 600;
+            font-weight: 1000;
+            font-style: italic;
             cursor: pointer;
             transition: all 0.3s ease;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: .06em;
         }
 
         .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: rgba(255,255,255,.04);
             color: white;
+            border-color: rgba(255,45,45,.72);
+            box-shadow: 0 0 22px rgba(255,45,45,.18), inset 0 0 18px rgba(255,45,45,.08);
         }
 
         .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+            transform: translateY(-1px);
+            box-shadow: 0 0 28px rgba(255,45,45,.26), inset 0 0 18px rgba(255,45,45,.10);
         }
 
         .btn-secondary {
-            background: #ecf0f1;
-            color: #2c3e50;
+            background: rgba(255,255,255,.04);
+            color: white;
+            border-color: rgba(58,139,255,.72);
+            box-shadow: 0 0 22px rgba(58,139,255,.18), inset 0 0 18px rgba(58,139,255,.08);
         }
 
         .btn-secondary:hover {
-            background: #d5dbdb;
-            transform: translateY(-2px);
+            background: rgba(255,255,255,.055);
+            transform: translateY(-1px);
         }
 
         .btn:disabled {
@@ -138,15 +224,16 @@
         .progress-bar {
             width: 100%;
             height: 20px;
-            background: #ecf0f1;
+            background: rgba(255,255,255,.06);
             border-radius: 10px;
             overflow: hidden;
             margin-bottom: 10px;
+            border: 1px solid var(--border);
         }
 
         .progress-fill {
             height: 100%;
-            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(90deg, var(--red), var(--blue));
             width: 0%;
             transition: width 0.3s ease;
             border-radius: 10px;
@@ -154,36 +241,43 @@
 
         .progress-text {
             text-align: center;
-            color: #7f8c8d;
+            color: var(--muted);
             font-size: 14px;
         }
 
         .result-container {
             margin-top: 30px;
             padding: 25px;
-            background: #f8f9fa;
-            border-radius: 10px;
-            border-left: 5px solid #27ae60;
+            background:
+                linear-gradient(135deg, rgba(255,255,255,.07), transparent 34%),
+                var(--panel-soft);
+            border-radius: var(--radius);
+            border: 1px solid rgba(58,139,255,.50);
+            box-shadow: 0 0 24px rgba(58,139,255,.13), inset 0 0 0 1px rgba(255,255,255,.035);
             display: none;
         }
 
         .result-container h3 {
-            color: #27ae60;
+            color: var(--text);
             margin-bottom: 15px;
             font-size: 1.3em;
+            font-style: italic;
+            text-transform: uppercase;
+            text-shadow: 0 3px 0 #000;
         }
 
         .key-display {
-            background: white;
+            background: rgba(0,0,0,.38);
             padding: 15px;
-            border-radius: 8px;
+            border-radius: 14px;
             margin-bottom: 15px;
-            border: 1px solid #e0e0e0;
+            border: 1px solid rgba(58,139,255,.35);
+            box-shadow: inset 0 0 20px rgba(58,139,255,.08);
         }
 
         .key-label {
             font-weight: 600;
-            color: #2c3e50;
+            color: #93bfff;
             margin-bottom: 5px;
             font-size: 0.9em;
             text-transform: uppercase;
@@ -194,11 +288,11 @@
             font-family: 'Courier New', monospace;
             font-size: 14px;
             word-break: break-all;
-            color: #34495e;
-            background: #f8f9fa;
+            color: #f3f7ff;
+            background: rgba(255,255,255,.04);
             padding: 10px;
-            border-radius: 5px;
-            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            border: 1px solid var(--border);
         }
 
         .stats {
@@ -211,42 +305,45 @@
         .stat-item {
             text-align: center;
             padding: 15px;
-            background: white;
-            border-radius: 8px;
-            border: 1px solid #e0e0e0;
+            background: rgba(255,255,255,.04);
+            border-radius: 12px;
+            border: 1px solid var(--border);
         }
 
         .stat-value {
             font-size: 1.5em;
             font-weight: 700;
-            color: #2c3e50;
+            color: var(--text);
         }
 
         .stat-label {
             font-size: 0.9em;
-            color: #7f8c8d;
+            color: var(--muted);
             text-transform: uppercase;
             letter-spacing: 1px;
         }
 
         .error {
-            background: #fee;
-            color: #c0392b;
+            background: rgba(223,32,32,.12);
+            color: #ff7777;
             padding: 15px;
-            border-radius: 8px;
-            border-left: 5px solid #c0392b;
+            border-radius: 12px;
+            border: 1px solid rgba(255,45,45,.65);
             margin-top: 20px;
             display: none;
         }
 
         .info {
-            background: #e8f4fd;
-            color: #2980b9;
+            background:
+                linear-gradient(135deg, rgba(255,255,255,.075), transparent 36%),
+                rgba(8, 10, 13, .80);
+            color: #d8dee8;
             padding: 15px;
-            border-radius: 8px;
-            border-left: 5px solid #2980b9;
+            border-radius: var(--radius);
+            border: 1px solid rgba(255,255,255,.15);
             margin-top: 20px;
             margin-bottom: 30px;
+            box-shadow: 0 24px 55px rgba(0,0,0,.20);
         }
 
         .info h4 {
@@ -271,20 +368,23 @@
             top: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0,0,0,0.5);
+            background-color: rgba(0,0,0,0.68);
             backdrop-filter: blur(5px);
         }
 
         .modal-content {
-            background-color: white;
+            background:
+                linear-gradient(135deg, rgba(255,255,255,.07), transparent 34%),
+                var(--panel);
             margin: 5% auto;
             padding: 0;
-            border-radius: 15px;
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
             width: 90%;
             max-width: 600px;
             max-height: 80vh;
             overflow-y: auto;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            box-shadow: 0 20px 40px rgba(16,32,51,0.18);
             animation: modalSlideIn 0.3s ease-out;
         }
 
@@ -310,10 +410,11 @@
         }
 
         .modal-header {
-            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
-            color: white;
+            background: rgba(3,4,6,.88);
+            color: var(--text);
             padding: 20px 25px;
-            border-radius: 15px 15px 0 0;
+            border-radius: var(--radius) var(--radius) 0 0;
+            border-bottom: 1px solid var(--border);
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -343,14 +444,14 @@
         .import-section {
             margin-bottom: 25px;
             padding: 20px;
-            background: #f8f9fa;
-            border-radius: 10px;
-            border-left: 4px solid #667eea;
+            background: rgba(0,0,0,.38);
+            border-radius: 14px;
+            border: 1px solid rgba(58,139,255,.35);
         }
 
         .import-section h4 {
             margin: 0 0 15px 0;
-            color: #2c3e50;
+            color: var(--text);
             font-size: 1.1em;
         }
 
@@ -365,16 +466,16 @@
         }
 
         .warning-box {
-            background: #fff3cd;
-            border: 1px solid #ffeaa7;
-            border-radius: 8px;
+            background: rgba(223,32,32,.12);
+            border: 1px solid rgba(255,45,45,.65);
+            border-radius: 12px;
             padding: 12px;
             margin-bottom: 15px;
-            color: #856404;
+            color: #ffb4b4;
         }
 
         .warning-box strong {
-            color: #d63031;
+            color: #ff7777;
         }
 
         /* Floating Info Button */
@@ -384,16 +485,16 @@
             right: 30px;
             width: 60px;
             height: 60px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: rgba(255,255,255,.04);
+            border: 1px solid rgba(58,139,255,.72);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+            box-shadow: 0 0 22px rgba(58,139,255,.18), inset 0 0 18px rgba(58,139,255,.08);
             transition: all 0.3s ease;
             z-index: 1000;
-            border: none;
             color: white;
             font-size: 24px;
             text-decoration: none;
@@ -401,7 +502,7 @@
 
         .floating-info:hover {
             transform: translateY(-3px);
-            box-shadow: 0 12px 35px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 0 28px rgba(58,139,255,.26), inset 0 0 18px rgba(58,139,255,.10);
         }
 
         .floating-info:active {
@@ -458,8 +559,8 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>MeshCore Key Generator</h1>
-            <p>Generate custom Ed25519 keys for MeshCore</p>
+            <h1>MeshCore Pro Web Key Generator</h1>
+            <p>Generate long-prefix, cosmetic, and watchlist Ed25519 keys for MeshCore</p>
         </div>
 
         <div class="content">
@@ -516,7 +617,7 @@
                         </div>
                         
                         <div class="import-section" style="text-align: center; margin-top: 20px;">
-                            <a href="./instructions" style="display: inline-block; padding: 12px 24px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; border-radius: 8px; font-weight: 600; transition: all 0.3s ease;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 20px rgba(102, 126, 234, 0.3)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+                            <a href="./instructions" style="display: inline-block; padding: 12px 24px; background: rgba(255,255,255,.04); color: white; text-decoration: none; border-radius: 12px; border: 1px solid rgba(58,139,255,.72); font-weight: 900; transition: all 0.3s ease; text-transform: uppercase;" onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 0 22px rgba(58,139,255,.18), inset 0 0 18px rgba(58,139,255,.08)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
                                 📋 View Complete Step-by-Step Instructions
                             </a>
                         </div>
@@ -531,13 +632,79 @@
                     <label for="targetPrefix">Target Prefix (Hex):</label>
                     <input type="text" id="targetPrefix" class="hex-input" 
                            placeholder="Enter hex prefix (e.g., F8, F8A1, FFF, etc.)" 
-                           maxlength="8" pattern="[0-9A-Fa-f]+">
-                    <small style="color: #7f8c8d; margin-top: 5px; display: block;">
-                        Enter any hex prefix (1-8 characters). Longer prefixes take longer to find.
+                           maxlength="64" pattern="[0-9A-Fa-f]+">
+                    <small style="color: var(--muted); margin-top: 5px; display: block;">
+                        Enter any hex prefix up to 64 characters. Longer prefixes take much longer to find.
                     </small>
-                    <div id="prefixInfo" style="margin-top: 10px; padding: 10px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #667eea; display: none;">
-                        <div style="font-weight: 600; color: #2c3e50; margin-bottom: 5px;">📊 Difficulty Estimate</div>
-                        <div id="prefixDifficulty" style="font-size: 14px; color: #34495e;"></div>
+                    <div id="prefixInfo" style="margin-top: 10px; padding: 12px; background: rgba(0,0,0,.38); border-radius: 12px; border: 1px solid rgba(58,139,255,.35); display: none;">
+                        <div style="font-weight: 900; color: var(--text); margin-bottom: 5px;">📊 Difficulty Estimate</div>
+                        <div id="prefixDifficulty" style="font-size: 14px; color: var(--muted);"></div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="patternMode">Pattern Mode:</label>
+                    <select id="patternMode">
+                        <option value="prefix">Prefix only</option>
+                        <option value="simple">Simple first-two</option>
+                        <option value="pattern-2">Cosmetic 2-char</option>
+                        <option value="pattern-4">Cosmetic 4-char</option>
+                        <option value="pattern-6">Cosmetic 6-char</option>
+                        <option value="pattern-8">Cosmetic 8-char</option>
+                        <option value="prefix-pattern-2">Prefix + cosmetic 2-char</option>
+                        <option value="prefix-pattern-4">Prefix + cosmetic 4-char</option>
+                        <option value="prefix-pattern-6">Prefix + cosmetic 6-char</option>
+                        <option value="prefix-pattern-8">Prefix + cosmetic 8-char</option>
+                    </select>
+                    <small style="color: var(--muted); margin-top: 5px; display: block;">
+                        Cosmetic modes match the first N hex characters with the last N characters, including reversed/palindromic matches.
+                    </small>
+                </div>
+
+                <div class="form-group" id="gpuToggleContainer" hidden>
+                    <label style="display: flex; gap: 10px; align-items: center; font-size: 1em;">
+                        <input type="checkbox" id="gpuAccelerationToggle" style="width: auto;">
+                        Enable GPU acceleration
+                    </label>
+                    <small id="gpuAccelerationHint" style="color: var(--muted); margin-top: 6px; display: block;">GPU acceleration available for prefix-gated searches up to 64 hex characters.</small>
+                </div>
+
+                <div class="form-group" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px;">
+                    <div>
+                        <label for="wasmWorkerCount">WASM Workers:</label>
+                        <input type="text" id="wasmWorkerCount" placeholder="Auto" style="width: 100%; padding: 15px; border: 1px solid var(--border); border-radius: 12px; font-size: 16px; color: var(--text); background: rgba(255,255,255,.045);">
+                        <small style="color: var(--muted); margin-top: 5px; display: block;">Approximate CPU cores for the WASM prefix engine.</small>
+                    </div>
+                    <div>
+                        <label for="wasmBatchSize">WASM Batch:</label>
+                        <input type="text" id="wasmBatchSize" placeholder="4096" style="width: 100%; padding: 15px; border: 1px solid var(--border); border-radius: 12px; font-size: 16px; color: var(--text); background: rgba(255,255,255,.045);">
+                    </div>
+                    <div>
+                        <label for="gpuBatchSize">GPU Batch:</label>
+                        <input type="text" id="gpuBatchSize" placeholder="4096" style="width: 100%; padding: 15px; border: 1px solid var(--border); border-radius: 12px; font-size: 16px; color: var(--text); background: rgba(255,255,255,.045);">
+                    </div>
+                    <div>
+                        <label for="jsBatchSize">JS Batch:</label>
+                        <input type="text" id="jsBatchSize" placeholder="192" style="width: 100%; padding: 15px; border: 1px solid var(--border); border-radius: 12px; font-size: 16px; color: var(--text); background: rgba(255,255,255,.045);">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="watchlistInput">Watchlist Patterns:</label>
+                    <textarea id="watchlistInput" rows="5" style="width: 100%; padding: 15px; border: 1px solid var(--border); border-radius: 12px; font-size: 14px; font-family: 'Courier New', monospace; color: var(--text); background: rgba(255,255,255,.045);" placeholder="ABCD...EFGH | Optional description"></textarea>
+                    <small style="color: var(--muted); margin-top: 5px; display: block;">
+                        One pattern per line, using the Python watchlist format: FIRST...LAST or FIRST...LAST | Description.
+                    </small>
+                </div>
+
+                <div class="form-group" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px;">
+                    <div>
+                        <label for="maxKeys">Max Keys:</label>
+                        <input type="text" id="maxKeys" placeholder="Unlimited, 1M, 500K" style="width: 100%; padding: 15px; border: 1px solid var(--border); border-radius: 12px; font-size: 16px; color: var(--text); background: rgba(255,255,255,.045);">
+                    </div>
+                    <div>
+                        <label for="maxTime">Max Time:</label>
+                        <input type="text" id="maxTime" placeholder="Unlimited, 10m, 2h" style="width: 100%; padding: 15px; border: 1px solid var(--border); border-radius: 12px; font-size: 16px; color: var(--text); background: rgba(255,255,255,.045);">
                     </div>
                 </div>
 
@@ -614,981 +781,7 @@
         </a>
     </div>
 
-    <script>
-        // Web Crypto API Ed25519 implementation
-        console.log('✓ Web Crypto API available:', typeof crypto !== 'undefined');
-        console.log('✓ Subtle crypto available:', typeof crypto.subtle !== 'undefined');
-
-        // Import noble-ed25519 for proper Ed25519 operations
-        // This library provides the crypto_scalarmult_ed25519_base_noclamp equivalent
-        let nobleEd25519 = null;
-
-        class MeshCoreKeyGenerator {
-            constructor() {
-                this.isRunning = false;
-                this.stopRequested = false;
-                this.attempts = 0;
-                this.startTime = null;
-                this.lastUpdateTime = null;
-                this.updateInterval = null;
-                this.initialized = false;
-                this.workers = [];
-                this.numWorkers = navigator.hardwareConcurrency || 4;
-                this.batchSize = 4096; // Initial per-worker batch size
-                this.targetBatchMs = 20;
-                this.minBatchSize = 512;
-                this.maxBatchSize = 65536;
-                this.progressIntervalMs = 150;
-                this.currentJobId = 0;
-                this.activeSearch = null;
-                this.generationMode = 'wasm';
-                this.jsFallbackModule = null;
-                this.jsFallbackReason = null;
-                this.perfDebug = new URLSearchParams(window.location.search).get('perfDebug') === '1';
-                this.perfStats = this.createEmptyPerfStats();
-            }
-
-            createEmptyPerfStats() {
-                return {
-                    messages: 0,
-                    batches: 0,
-                    wasmMs: 0,
-                    batchWallMs: 0,
-                    startedAt: 0,
-                    lastLogAt: 0
-                };
-            }
-
-            resetPerfStats() {
-                this.perfStats = this.createEmptyPerfStats();
-                this.perfStats.startedAt = performance.now();
-            }
-
-            recordPerfMetrics(metrics) {
-                if (!metrics) return;
-                this.perfStats.messages += 1;
-                this.perfStats.batches = Math.max(this.perfStats.batches, metrics.batchCount || 0);
-                this.perfStats.wasmMs += metrics.wasmMs || 0;
-                this.perfStats.batchWallMs += metrics.batchWallMs || 0;
-            }
-
-            getPerfSnapshot(elapsedSeconds) {
-                const elapsed = Math.max(elapsedSeconds, 0.001);
-                const avgBatch = this.perfStats.batches > 0 ? this.attempts / this.perfStats.batches : 0;
-                const msgPerSec = this.perfStats.messages / elapsed;
-                const overheadMs = Math.max(0, this.perfStats.batchWallMs - this.perfStats.wasmMs);
-                const overheadShare = this.perfStats.batchWallMs > 0 ? overheadMs / this.perfStats.batchWallMs : 0;
-                const wasmShare = this.perfStats.batchWallMs > 0 ? this.perfStats.wasmMs / this.perfStats.batchWallMs : 0;
-                return {
-                    avgBatch,
-                    msgPerSec,
-                    overheadMs,
-                    overheadShare,
-                    wasmShare
-                };
-            }
-
-            async initialize() {
-                if (!this.initialized) {
-                    let libraryUrl = null;
-                    try {
-                        // Use unpkg.com for the latest version (recommended)
-                        libraryUrl = 'https://unpkg.com/noble-ed25519@latest';
-                        nobleEd25519 = await import(libraryUrl);
-                        this.initialized = true;
-                        console.log('✓ noble-ed25519 library loaded successfully from unpkg.com');
-                        console.log('Available functions:', Object.keys(nobleEd25519));
-                    } catch (error) {
-                        console.warn('Failed to load from unpkg.com, trying jsDelivr:', error.message);
-                        try {
-                            // Fallback to jsDelivr
-                            libraryUrl = 'https://cdn.jsdelivr.net/npm/noble-ed25519@latest';
-                            nobleEd25519 = await import(libraryUrl);
-                            this.initialized = true;
-                            console.log('✓ noble-ed25519 library loaded successfully from jsDelivr');
-                            console.log('Available functions:', Object.keys(nobleEd25519));
-                        } catch (fallbackError) {
-                            console.warn('Failed to load from jsDelivr, trying esm.sh:', fallbackError.message);
-                            try {
-                                // Fallback to esm.sh (alternative CDN)
-                                libraryUrl = 'https://esm.sh/noble-ed25519@latest';
-                                nobleEd25519 = await import(libraryUrl);
-                                this.initialized = true;
-                                console.log('✓ noble-ed25519 library loaded successfully from esm.sh');
-                                console.log('Available functions:', Object.keys(nobleEd25519));
-                            } catch (esmError) {
-                                console.warn('Failed to load from esm.sh, trying Skypack:', esmError.message);
-                                try {
-                                    // Fallback to Skypack
-                                    libraryUrl = 'https://cdn.skypack.dev/noble-ed25519';
-                                    nobleEd25519 = await import(libraryUrl);
-                                    this.initialized = true;
-                                    console.log('✓ noble-ed25519 library loaded successfully from Skypack');
-                                    console.log('Available functions:', Object.keys(nobleEd25519));
-                                } catch (skypackError) {
-                                    console.warn('Failed to load from Skypack, trying offline fallback:', skypackError.message);
-                                    try {
-                                        // Final fallback: offline version
-                                        libraryUrl = './noble-ed25519-offline-simple.js';
-                                        nobleEd25519 = await import(libraryUrl);
-                                        this.initialized = true;
-                                        console.log('✓ noble-ed25519 library loaded successfully (offline fallback)');
-                                        console.log('Available functions:', Object.keys(nobleEd25519));
-                                    } catch (offlineError) {
-                                        console.error('Failed to load noble-ed25519 library from all sources:', offlineError);
-                                        throw new Error('Failed to load Ed25519 library. Please check your internet connection and ensure noble-ed25519-offline-simple.js is available.');
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    
-                    // Store the library URL for workers to use (they'll import from the same URL)
-                    this.libraryUrl = libraryUrl;
-
-                    // Initialize Web Workers with WASM acceleration
-                    if (typeof WebAssembly === 'undefined') {
-                        await this.loadJsFallback('WebAssembly is not available in this browser.');
-                    } else {
-                        try {
-                            await this.initializeWorkers();
-                        } catch (workerInitError) {
-                            await this.loadJsFallback(`WASM worker init failed: ${workerInitError.message}`);
-                        }
-                    }
-                    this.initialized = true;
-                }
-            }
-
-            async initializeWorkers() {
-                if (this.workers.length > 0) return; // Already initialized
-
-                try {
-                    for (let i = 0; i < this.numWorkers; i++) {
-                        const worker = new Worker('./wasm/worker.js', { type: 'module' });
-                        const workerInfo = {
-                            id: i,
-                            worker,
-                            attemptedTotal: 0
-                        };
-                        worker.addEventListener('message', (e) => this.handleWorkerMessage(workerInfo, e.data));
-                        worker.addEventListener('error', (error) => this.handleWorkerError(workerInfo, error));
-                        this.workers.push(workerInfo);
-                    }
-                } catch (error) {
-                    await this.cleanupWorkers();
-                    throw error;
-                }
-                this.useFastWorkers = true;
-                this.generationMode = 'wasm';
-                console.log(`✓ Initialized ${this.numWorkers} WASM-accelerated Web Workers`);
-            }
-
-            async loadJsFallback(reason) {
-                if (!this.jsFallbackModule) {
-                    this.jsFallbackModule = await import('./js/fallback-keygen.js');
-                }
-                this.generationMode = 'js-fallback';
-                this.jsFallbackReason = reason || 'WASM unavailable';
-                console.warn(`Using JS fallback key generation: ${this.jsFallbackReason}`);
-            }
-
-            async cleanupWorkers() {
-                for (const workerInfo of this.workers) {
-                    workerInfo.worker.terminate();
-                }
-                this.workers = [];
-            }
-
-            // Convert Uint8Array to hex string
-            toHex(bytes) {
-                if (!(bytes instanceof Uint8Array)) {
-                    console.error('toHex: bytes is not Uint8Array:', typeof bytes, bytes);
-                    return '';
-                }
-                const hex = Array.from(bytes)
-                    .map(b => b.toString(16).padStart(2, '0'))
-                    .join('')
-                    .toUpperCase();
-                return hex;
-            }
-
-            // Check if public key matches the target prefix
-            checkPrefix(publicKeyHex, targetPrefix) {
-                return publicKeyHex.startsWith(targetPrefix.toUpperCase());
-            }
-
-            handleWorkerError(workerInfo, error) {
-                console.warn(`Worker ${workerInfo.id} failed:`, error);
-                if (this.activeSearch && !this.activeSearch.done) {
-                    this.activeSearch.failures += 1;
-                    if (this.activeSearch.failures >= this.workers.length) {
-                        const activeSearch = this.activeSearch;
-                        activeSearch.done = true;
-                        this.activeSearch = null;
-                        activeSearch.reject(new Error('All workers failed during generation.'));
-                    }
-                }
-            }
-
-            handleWorkerMessage(workerInfo, data) {
-                if (!this.activeSearch || data.jobId !== this.activeSearch.jobId) {
-                    return;
-                }
-
-                if (data.metrics) {
-                    this.recordPerfMetrics(data.metrics);
-                }
-
-                if (data.type === 'progress' || data.type === 'match') {
-                    const newTotal = data.attemptedTotal ?? (workerInfo.attemptedTotal + (data.attemptedDelta || 0));
-                    const delta = Math.max(0, newTotal - workerInfo.attemptedTotal);
-                    workerInfo.attemptedTotal = newTotal;
-                    this.attempts += delta;
-                }
-
-                if (data.type === 'match' && !this.activeSearch.done) {
-                    this.activeSearch.done = true;
-                    this.stopRequested = false;
-                    this.isRunning = false;
-                    this.stopWorkers();
-                    const resolve = this.activeSearch.resolve;
-                    this.activeSearch = null;
-                    resolve(data.result);
-                    return;
-                }
-
-                if (data.type === 'stopped') {
-                    this.activeSearch.stopped += 1;
-                    if (this.activeSearch.stopped >= this.workers.length && !this.activeSearch.done) {
-                        const activeSearch = this.activeSearch;
-                        activeSearch.done = true;
-                        this.activeSearch = null;
-                        if (this.stopRequested) {
-                            activeSearch.resolve(null);
-                        } else {
-                            activeSearch.reject(new Error('Search ended without a match.'));
-                        }
-                    }
-                }
-            }
-
-            stopWorkers() {
-                for (const workerInfo of this.workers) {
-                    workerInfo.worker.postMessage({ type: 'stop' });
-                }
-            }
-
-            startWorkerSearch(targetPrefix) {
-                if (this.workers.length === 0) {
-                    return Promise.reject(new Error('No workers available for key generation.'));
-                }
-
-                this.currentJobId += 1;
-                for (const workerInfo of this.workers) {
-                    workerInfo.attemptedTotal = 0;
-                }
-                this.resetPerfStats();
-
-                const jobId = this.currentJobId;
-                return new Promise((resolve, reject) => {
-                    this.activeSearch = {
-                        jobId,
-                        done: false,
-                        stopped: 0,
-                        failures: 0,
-                        resolve,
-                        reject
-                    };
-
-                    for (const workerInfo of this.workers) {
-                        workerInfo.worker.postMessage({
-                            type: 'start',
-                            jobId,
-                            targetPrefix,
-                            batchSize: this.batchSize,
-                            adaptiveBatching: true,
-                            targetBatchMs: this.targetBatchMs,
-                            minBatchSize: this.minBatchSize,
-                            maxBatchSize: this.maxBatchSize,
-                            progressIntervalMs: this.progressIntervalMs
-                        });
-                    }
-                });
-            }
-
-            async startJsFallbackSearch(targetPrefix) {
-                await this.loadJsFallback(this.jsFallbackReason || 'WASM path unavailable');
-                const fallbackBatchSize = Math.max(64, Math.floor(this.batchSize / 2));
-                return this.jsFallbackModule.searchVanityKey({
-                    targetPrefix,
-                    batchSize: fallbackBatchSize,
-                    getNobleEd25519: () => nobleEd25519,
-                    shouldStop: () => this.stopRequested || !this.isRunning,
-                    onAttempted: (count) => {
-                        this.attempts += count;
-                    }
-                });
-            }
-
-            // Validate that a generated keypair is correct (matches Python implementation)
-            async validateKeypair(privateKeyHex, publicKeyHex) {
-                try {
-                    // Ensure library is loaded
-                    await this.initialize();
-                    
-                    // Convert hex strings back to Uint8Array
-                    const privateKeyBytes = new Uint8Array(
-                        privateKeyHex.match(/.{1,2}/g).map(byte => parseInt(byte, 16))
-                    );
-                    
-                    if (privateKeyBytes.length !== 64) {
-                        return { valid: false, error: 'Private key must be 64 bytes' };
-                    }
-                    
-                    // Extract the clamped scalar (first 32 bytes) - this is what MeshCore actually uses
-                    const clampedScalar = privateKeyBytes.slice(0, 32);
-                    
-                    // 1. Check that the private key is not all zeros
-                    if (clampedScalar.every(byte => byte === 0)) {
-                        return { valid: false, error: 'Private key cannot be all zeros' };
-                    }
-                    
-                    // 2. Validate Ed25519 scalar clamping rules (matches Python implementation)
-                    if ((clampedScalar[0] & 7) !== 0) {
-                        return { valid: false, error: 'Private key scalar not properly clamped (bits 0-2 should be 0)' };
-                    }
-                    
-                    if ((clampedScalar[31] & 192) !== 64) {
-                        return { valid: false, error: 'Private key scalar not properly clamped (bits 6 should be 1, bits 7 should be 0)' };
-                    }
-                    
-                    // 3. Check public key format
-                    const publicKeyBytes = new Uint8Array(
-                        publicKeyHex.match(/.{1,2}/g).map(byte => parseInt(byte, 16))
-                    );
-                    
-                    if (publicKeyBytes.length !== 32) {
-                        return { valid: false, error: 'Public key must be 32 bytes' };
-                    }
-                    
-                    if (publicKeyBytes.every(byte => byte === 0)) {
-                        return { valid: false, error: 'Public key cannot be all zeros' };
-                    }
-                    
-                    // 4. CRITICAL: Verify that the private key actually generates the claimed public key
-                    // This matches the Python implementation's verify_key_compatibility function
-                    try {
-                        // Use Point.BASE.multiply which accepts pre-clamped scalars (no double clamping)
-                        let derivedPublicKey;
-                        try {
-                            // Convert scalar to BigInt for Point.BASE.multiply
-                            let scalarBigInt = 0n;
-                            for (let i = 0; i < 32; i++) {
-                                scalarBigInt += BigInt(clampedScalar[i]) << BigInt(8 * i);
-                            }
-                            derivedPublicKey = nobleEd25519.Point.BASE.multiply(scalarBigInt);
-                        } catch (error) {
-                            // Fallback to getPublicKey if Point.BASE.multiply fails
-                            try {
-                                derivedPublicKey = await nobleEd25519.getPublicKey(clampedScalar);
-                            } catch (fallbackError) {
-                                derivedPublicKey = nobleEd25519.getPublicKey(clampedScalar);
-                            }
-                        }
-                        
-                        // Convert to Uint8Array if needed
-                        let derivedPublicKeyBytes;
-                        if (derivedPublicKey instanceof Uint8Array) {
-                            derivedPublicKeyBytes = derivedPublicKey;
-                        } else if (derivedPublicKey.toRawBytes) {
-                            derivedPublicKeyBytes = derivedPublicKey.toRawBytes();
-                        } else if (derivedPublicKey.toBytes) {
-                            derivedPublicKeyBytes = derivedPublicKey.toBytes();
-                        } else if (derivedPublicKey.x !== undefined && derivedPublicKey.y !== undefined) {
-                            // Point object with x, y coordinates
-                            // Convert to compressed format (32 bytes)
-                            derivedPublicKeyBytes = new Uint8Array(32);
-                            const y = derivedPublicKey.y;
-                            const x = derivedPublicKey.x;
-                            
-                            // Copy y-coordinate (little-endian)
-                            for (let i = 0; i < 31; i++) {
-                                derivedPublicKeyBytes[i] = Number((y >> BigInt(8 * i)) & 255n);
-                            }
-                            // Set the sign bit based on x-coordinate
-                            derivedPublicKeyBytes[31] = Number((x & 1n) << 7);
-                        } else {
-                            console.error('Unsupported derived public key format:', derivedPublicKey);
-                            throw new Error(`Unsupported public key format from noble-ed25519: ${derivedPublicKey.constructor.name}`);
-                        }
-                        
-                        const derivedPublicHex = this.toHex(derivedPublicKeyBytes);
-                        
-                        if (derivedPublicHex !== publicKeyHex) {
-                            return { 
-                                valid: false, 
-                                error: `Key verification failed: private key does not generate the claimed public key` 
-                            };
-                        }
-                    } catch (error) {
-                        return { 
-                            valid: false, 
-                            error: `Key verification failed: ${error.message}` 
-                        };
-                    }
-                    
-                    return { valid: true };
-                } catch (error) {
-                    return { valid: false, error: `Validation error: ${error.message}` };
-                }
-            }
-
-            // Generate keys until we find a match
-            async generateVanityKey(targetPrefix, prefixLength) {
-                this.isRunning = true;
-                this.stopRequested = false;
-                this.attempts = 0;
-                this.startTime = Date.now();
-                this.lastUpdateTime = this.startTime;
-                this.currentTargetPrefix = targetPrefix; // Store for difficulty estimate updates
-
-                const updateProgress = () => {
-                    if (!this.isRunning) return;
-
-                    const now = Date.now();
-                    const elapsed = (now - this.startTime) / 1000;
-                    const rate = this.attempts / elapsed;
-
-                    document.getElementById('attemptsCount').textContent = this.attempts.toLocaleString();
-                    document.getElementById('timeElapsed').textContent = `${elapsed.toFixed(1)}s`;
-                    document.getElementById('keysPerSecond').textContent = Math.round(rate).toLocaleString();
-
-                    // Update progress text
-                    const progressText = document.getElementById('progressText');
-                    const method = this.generationMode === 'js-fallback'
-                        ? 'JS fallback'
-                        : `${this.workers.length} WASM workers`;
-                    let progressLine = `${this.attempts.toLocaleString()} attempts | ${Math.round(rate).toLocaleString()} keys/sec | ${elapsed.toFixed(1)}s elapsed [${method}]`;
-
-                    if (this.perfDebug) {
-                        const perf = this.getPerfSnapshot(elapsed);
-                        progressLine += ` | msg ${perf.msgPerSec.toFixed(1)}/s | avg batch ${Math.round(perf.avgBatch)} | wasm ${(perf.wasmShare * 100).toFixed(1)}%`;
-                        const now = performance.now();
-                        if (now - this.perfStats.lastLogAt >= 2000) {
-                            console.log('Perf debug:', {
-                                elapsedSec: elapsed.toFixed(2),
-                                attempts: this.attempts,
-                                keysPerSec: Math.round(rate),
-                                messagesPerSec: perf.msgPerSec.toFixed(2),
-                                avgBatch: Math.round(perf.avgBatch),
-                                overheadShare: `${(perf.overheadShare * 100).toFixed(2)}%`
-                            });
-                            this.perfStats.lastLogAt = now;
-                        }
-                    }
-                    progressText.textContent = progressLine;
-
-                    // Estimate progress based on probability
-                    const probability = 1 / Math.pow(16, prefixLength);
-                    const expectedAttempts = 1 / probability;
-                    const progress = Math.min((this.attempts / expectedAttempts) * 100, 99);
-                    
-                    document.getElementById('progressFill').style.width = `${progress}%`;
-                };
-
-                // Update progress every 100ms
-                this.updateInterval = setInterval(updateProgress, 100);
-                
-                // Update difficulty estimate every 10 seconds with current rate
-                let lastDifficultyUpdate = 0;
-                this.difficultyUpdateInterval = setInterval(() => {
-                    if (!this.isRunning) return;
-                    const elapsed = (Date.now() - this.startTime) / 1000;
-                    // Update every 10 seconds, starting after first 10 seconds
-                    if (elapsed - lastDifficultyUpdate >= 10 && elapsed >= 10) {
-                        const rate = this.attempts / elapsed;
-                        updateDifficultyEstimate(this.currentTargetPrefix, rate);
-                        lastDifficultyUpdate = elapsed;
-                    }
-                }, 10000); // Check every 10 seconds
-
-                try {
-                    let matched = null;
-                    if (this.generationMode === 'js-fallback') {
-                        matched = await this.startJsFallbackSearch(targetPrefix);
-                    } else {
-                        try {
-                            matched = await this.startWorkerSearch(targetPrefix);
-                        } catch (workerError) {
-                            await this.loadJsFallback(`WASM search failed: ${workerError.message}`);
-                            matched = await this.startJsFallbackSearch(targetPrefix);
-                        }
-                    }
-                    if (!matched) {
-                        return null;
-                    }
-
-                    const validation = await this.validateKeypair(matched.privateKey, matched.publicKey);
-                    if (!validation.valid) {
-                        throw new Error(`Key validation failed: ${validation.error}`);
-                    }
-
-                    this.isRunning = false;
-                    clearInterval(this.updateInterval);
-                    if (this.difficultyUpdateInterval) {
-                        clearInterval(this.difficultyUpdateInterval);
-                    }
-                    updateProgress();
-
-                    return {
-                        publicKey: matched.publicKey,
-                        privateKey: matched.privateKey,
-                        attempts: this.attempts,
-                        timeElapsed: (Date.now() - this.startTime) / 1000,
-                        validation: validation
-                    };
-                } catch (error) {
-                    this.isRunning = false;
-                    this.stopWorkers();
-                    clearInterval(this.updateInterval);
-                    if (this.difficultyUpdateInterval) {
-                        clearInterval(this.difficultyUpdateInterval);
-                    }
-                    throw error;
-                }
-
-                return null;
-            }
-
-            stop() {
-                this.isRunning = false;
-                this.stopRequested = true;
-                if (this.generationMode === 'wasm') {
-                    this.stopWorkers();
-                }
-                if (this.updateInterval) {
-                    clearInterval(this.updateInterval);
-                }
-                if (this.difficultyUpdateInterval) {
-                    clearInterval(this.difficultyUpdateInterval);
-                }
-                // Workers will continue running for reuse, no need to terminate
-            }
-        }
-
-        // Global key generator instance
-        const keyGenerator = new MeshCoreKeyGenerator();
-        window.keyGenerator = keyGenerator;
-
-        // Debug helper for repeatable perf checks from the browser console:
-        // await runPerfSmoke('F8', 10)
-        window.runPerfSmoke = async function(prefix = 'F8', durationSeconds = 10) {
-            const samples = [];
-            keyGenerator.perfDebug = true;
-            const sampleTimer = setInterval(() => {
-                if (!keyGenerator.isRunning) return;
-                const elapsed = (Date.now() - keyGenerator.startTime) / 1000;
-                if (elapsed > 0) {
-                    samples.push(keyGenerator.attempts / elapsed);
-                }
-            }, 1000);
-
-            try {
-                const runPromise = keyGenerator.generateVanityKey(prefix.toUpperCase(), prefix.length);
-                await new Promise(resolve => setTimeout(resolve, Math.max(1, durationSeconds) * 1000));
-                keyGenerator.stop();
-                await runPromise.catch(() => null);
-
-                if (samples.length === 0) {
-                    return { samples: [], medianKeysPerSec: 0, note: 'No samples collected' };
-                }
-
-                const sorted = [...samples].sort((a, b) => a - b);
-                const mid = Math.floor(sorted.length / 2);
-                const median = sorted.length % 2 === 0 ? (sorted[mid - 1] + sorted[mid]) / 2 : sorted[mid];
-                return {
-                    prefix: prefix.toUpperCase(),
-                    durationSeconds,
-                    samples: sorted.map(v => Math.round(v)),
-                    medianKeysPerSec: Math.round(median)
-                };
-            } finally {
-                clearInterval(sampleTimer);
-            }
-        };
-
-        // DOM elements
-        const form = document.getElementById('keygenForm');
-        const targetPrefixInput = document.getElementById('targetPrefix');
-        const generateBtn = document.getElementById('generateBtn');
-        const stopBtn = document.getElementById('stopBtn');
-        const progressContainer = document.getElementById('progressContainer');
-        const resultContainer = document.getElementById('resultContainer');
-        const errorContainer = document.getElementById('errorContainer');
-        const downloadBtn = document.getElementById('downloadBtn');
-        const importInfoBtn = document.getElementById('importInfoBtn');
-        const importModal = document.getElementById('importModal');
-        const closeModal = document.getElementById('closeModal');
-
-        // Calculate and display difficulty estimate
-        function updateDifficultyEstimate(prefix, currentRate = null) {
-            const prefixInfo = document.getElementById('prefixInfo');
-            const prefixDifficulty = document.getElementById('prefixDifficulty');
-            
-            if (!prefix || prefix.length === 0) {
-                prefixInfo.style.display = 'none';
-                return;
-            }
-            
-            // Calculate probability and expected attempts
-            const probability = 1 / Math.pow(16, prefix.length);
-            const expectedAttempts = 1 / probability;
-            
-            // Format the expected attempts in a human-readable way
-            let attemptsText;
-            if (expectedAttempts >= 1e12) {
-                attemptsText = `${(expectedAttempts / 1e12).toFixed(1)} trillion`;
-            } else if (expectedAttempts >= 1e9) {
-                attemptsText = `${(expectedAttempts / 1e9).toFixed(1)} billion`;
-            } else if (expectedAttempts >= 1e6) {
-                attemptsText = `${(expectedAttempts / 1e6).toFixed(1)} million`;
-            } else if (expectedAttempts >= 1e3) {
-                attemptsText = `${(expectedAttempts / 1e3).toFixed(1)} thousand`;
-            } else {
-                attemptsText = Math.round(expectedAttempts).toLocaleString();
-            }
-            
-            // Calculate estimated time (use current rate if provided, otherwise default to 10k keys/sec)
-            const estimatedKeysPerSecond = currentRate || 10000;
-            const estimatedSeconds = expectedAttempts / estimatedKeysPerSecond;
-            
-            let timeText;
-            if (estimatedSeconds >= 31536000) { // 1 year
-                timeText = `${(estimatedSeconds / 31536000).toFixed(1)} years`;
-            } else if (estimatedSeconds >= 2592000) { // 1 month
-                timeText = `${(estimatedSeconds / 2592000).toFixed(1)} months`;
-            } else if (estimatedSeconds >= 86400) { // 1 day
-                timeText = `${(estimatedSeconds / 86400).toFixed(1)} days`;
-            } else if (estimatedSeconds >= 3600) { // 1 hour
-                timeText = `${(estimatedSeconds / 3600).toFixed(1)} hours`;
-            } else if (estimatedSeconds >= 60) { // 1 minute
-                timeText = `${(estimatedSeconds / 60).toFixed(1)} minutes`;
-            } else {
-                timeText = `${Math.round(estimatedSeconds)} seconds`;
-            }
-            
-            // Format the rate for display
-            let rateText;
-            if (currentRate) {
-                if (currentRate >= 1000) {
-                    rateText = `${(currentRate / 1000).toFixed(0)}k`;
-                } else {
-                    rateText = Math.round(currentRate).toLocaleString();
-                }
-                rateText += ' keys/sec';
-            } else {
-                rateText = '10k keys/sec';
-            }
-            
-            // Determine difficulty level
-            let difficultyLevel, difficultyColor;
-            if (expectedAttempts <= 1000) {
-                difficultyLevel = "Very Easy";
-                difficultyColor = "#27ae60";
-            } else if (expectedAttempts <= 100000) {
-                difficultyLevel = "Easy";
-                difficultyColor = "#2ecc71";
-            } else if (expectedAttempts <= 10000000) {
-                difficultyLevel = "Moderate";
-                difficultyColor = "#f39c12";
-            } else if (expectedAttempts <= 1000000000) {
-                difficultyLevel = "Hard";
-                difficultyColor = "#e67e22";
-            } else if (expectedAttempts <= 100000000000) {
-                difficultyLevel = "Very Hard";
-                difficultyColor = "#e74c3c";
-            } else {
-                difficultyLevel = "Extreme";
-                difficultyColor = "#8e44ad";
-            }
-            
-            prefixDifficulty.innerHTML = `
-                <div style="margin-bottom: 8px;">
-                    <span style="font-weight: 600; color: ${difficultyColor};">${difficultyLevel}</span> - 
-                    Expected to find in ~${attemptsText} attempts
-                </div>
-                <div style="font-size: 13px; color: #7f8c8d;">
-                    Estimated time: ~${timeText} (at ${rateText})
-                </div>
-                <div style="font-size: 13px; color: #7f8c8d;">
-                    Probability: 1 in ${expectedAttempts.toLocaleString()} (${(probability * 100).toFixed(6)}%)
-                </div>
-            `;
-            
-            prefixInfo.style.display = 'block';
-        }
-
-        // Update difficulty estimate when user types
-        targetPrefixInput.addEventListener('input', (e) => {
-            const prefix = e.target.value.trim().toUpperCase();
-            if (/^[0-9A-F]*$/.test(prefix)) {
-                updateDifficultyEstimate(prefix);
-                checkReservedPrefix(prefix);
-            } else {
-                // If invalid hex characters, disable button
-                generateBtn.disabled = true;
-                // Also check reserved prefix in case user is typing
-                checkReservedPrefix(prefix);
-            }
-            
-            // If prefix is empty, disable button
-            if (prefix.length === 0) {
-                generateBtn.disabled = true;
-            }
-        });
-
-        // Check for reserved prefixes and show warning, disable button if reserved
-        function checkReservedPrefix(prefix) {
-            const existingWarning = document.getElementById('reservedPrefixWarning');
-            if (existingWarning) {
-                existingWarning.remove();
-            }
-
-            // Check if prefix is reserved (starts with 00 or FF)
-            const isReserved = prefix.length >= 2 && (prefix.startsWith('00') || prefix.startsWith('FF'));
-            
-            if (isReserved) {
-                const warningDiv = document.createElement('div');
-                warningDiv.id = 'reservedPrefixWarning';
-                warningDiv.style.cssText = 'background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 8px; padding: 12px; margin-top: 10px; color: #856404; font-size: 14px;';
-                warningDiv.innerHTML = `<strong>⚠️ Warning:</strong> Prefixes starting with "00" or "FF" are reserved by MeshCore and may cause unexpected behavior in the network.`;
-                
-                const prefixInfo = document.getElementById('prefixInfo');
-                if (prefixInfo && prefixInfo.style.display !== 'none') {
-                    prefixInfo.parentNode.insertBefore(warningDiv, prefixInfo.nextSibling);
-                } else {
-                    targetPrefixInput.parentNode.appendChild(warningDiv);
-                }
-                
-                // Disable the Generate Key button
-                generateBtn.disabled = true;
-            } else {
-                // Enable the Generate Key button if prefix is valid and not reserved
-                // Only enable if prefix is not empty, valid hex, and within length limit
-                if (prefix.length > 0 && /^[0-9A-F]+$/.test(prefix) && prefix.length <= 8) {
-                    generateBtn.disabled = false;
-                } else if (prefix.length === 0) {
-                    // Disable if empty
-                    generateBtn.disabled = true;
-                }
-            }
-        }
-
-        // Form submission
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-
-            // Check if Web Crypto API is available
-            if (typeof crypto === 'undefined' || typeof crypto.subtle === 'undefined') {
-                showError('Error: Web Crypto API is not available in this browser.');
-                return;
-            }
-
-            const targetPrefix = targetPrefixInput.value.trim().toUpperCase();
-
-            // Validation
-            if (!targetPrefix) {
-                showError('Please enter a target prefix.');
-                return;
-            }
-
-            if (targetPrefix.length === 0 || targetPrefix.length > 8) {
-                showError('Prefix must be between 1 and 8 characters long.');
-                return;
-            }
-
-            if (!/^[0-9A-F]+$/.test(targetPrefix)) {
-                showError('Prefix must contain only hexadecimal characters (0-9, A-F).');
-                return;
-            }
-
-            // Check for reserved prefixes
-            if (targetPrefix.startsWith('00') || targetPrefix.startsWith('FF')) {
-                showError('Prefixes starting with "00" or "FF" are reserved by MeshCore and cannot be used.');
-                return;
-            }
-
-
-            // Hide previous results and errors
-            hideError();
-            resultContainer.style.display = 'none';
-
-            // Show progress
-            progressContainer.style.display = 'block';
-            generateBtn.disabled = true;
-            stopBtn.disabled = false;
-            stopBtn.textContent = 'Stop';
-            stopBtn.className = 'btn btn-secondary';
-
-            try {
-                // Initialize the key generator (loads the Ed25519 library)
-                document.getElementById('progressText').textContent = 'Loading Ed25519 library...';
-                await keyGenerator.initialize();
-                
-                // Update progress text with parallelization method
-                if (keyGenerator.generationMode === 'js-fallback') {
-                    document.getElementById('progressText').textContent = 'Using pure JavaScript fallback mode...';
-                } else if (keyGenerator.workers.length > 0) {
-                    document.getElementById('progressText').textContent = `Initialized ${keyGenerator.workers.length} WASM workers for parallel generation...`;
-                }
-                
-                const result = await keyGenerator.generateVanityKey(targetPrefix, targetPrefix.length);
-                
-                if (result) {
-                    displayResult(result, targetPrefix);
-                } else {
-                    showError('Key generation was stopped.');
-                }
-            } catch (error) {
-                showError(`Error generating key: ${error.message}`);
-            } finally {
-                progressContainer.style.display = 'none';
-                generateBtn.disabled = false;
-                stopBtn.disabled = false;  // Enable the button for "Generate Another"
-                stopBtn.textContent = 'Generate Another';
-                stopBtn.className = 'btn btn-secondary';
-            }
-        });
-
-        // Stop/Generate Another button
-        stopBtn.addEventListener('click', () => {
-            if (stopBtn.textContent === 'Stop') {
-                // Currently generating - stop the process
-                keyGenerator.stop();
-                stopBtn.disabled = true;
-            } else {
-                // Currently idle - generate another key
-                resultContainer.style.display = 'none';
-                form.dispatchEvent(new Event('submit'));
-            }
-        });
-
-        // Download button
-        downloadBtn.addEventListener('click', () => {
-            const publicKey = document.getElementById('publicKey').textContent;
-            const privateKey = document.getElementById('privateKey').textContent;
-            const targetPrefix = targetPrefixInput.value.trim().toUpperCase();
-            
-            const meshcoreData = {
-                public_key: publicKey,
-                private_key: privateKey
-            };
-
-            const blob = new Blob([JSON.stringify(meshcoreData, null, 2)], {
-                type: 'application/json'
-            });
-
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `meshcore_${targetPrefix}_${Date.now()}.json`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-        });
-
-
-
-        function displayResult(result, targetPrefix) {
-            document.getElementById('publicKey').textContent = result.publicKey;
-            document.getElementById('privateKey').textContent = result.privateKey;
-            document.getElementById('attemptsCount').textContent = result.attempts.toLocaleString();
-            document.getElementById('timeElapsed').textContent = `${result.timeElapsed.toFixed(1)}s`;
-            document.getElementById('keysPerSecond').textContent = Math.round(result.attempts / result.timeElapsed).toLocaleString();
-            
-            // Remove any existing validation status elements
-            const existingValidationStatuses = resultContainer.querySelectorAll('.key-display');
-            existingValidationStatuses.forEach(element => {
-                const label = element.querySelector('.key-label');
-                if (label && label.textContent === 'Validation Status:') {
-                    element.remove();
-                }
-            });
-            
-            // Add validation status to the result
-            const validationStatus = document.createElement('div');
-            validationStatus.className = 'key-display';
-            validationStatus.innerHTML = `
-                <div class="key-label">Validation Status:</div>
-                <div class="key-value" style="color: #27ae60; font-weight: bold;">
-                    ✓ RFC 8032 Ed25519 compliant - Proper SHA-512 expansion, scalar clamping, and key consistency verified
-                </div>
-            `;
-            
-            // Insert validation status after the private key display
-            const privateKeyDisplay = document.querySelector('.key-display:nth-child(3)');
-            privateKeyDisplay.parentNode.insertBefore(validationStatus, privateKeyDisplay.nextSibling);
-            
-            resultContainer.style.display = 'block';
-            resultContainer.scrollIntoView({ behavior: 'smooth' });
-        }
-
-        function showError(message) {
-            errorContainer.textContent = message;
-            errorContainer.style.display = 'block';
-        }
-
-        function hideError() {
-            errorContainer.style.display = 'none';
-        }
-
-        // Modal functionality
-        importInfoBtn.addEventListener('click', () => {
-            importModal.style.display = 'block';
-        });
-
-        closeModal.addEventListener('click', () => {
-            importModal.style.display = 'none';
-        });
-
-        // Close modal when clicking outside of it
-        window.addEventListener('click', (event) => {
-            if (event.target === importModal) {
-                importModal.style.display = 'none';
-            }
-        });
-
-        // Close modal with Escape key
-        document.addEventListener('keydown', (event) => {
-            if (event.key === 'Escape' && importModal.style.display === 'block') {
-                importModal.style.display = 'none';
-            }
-        });
-
-        // Function to get URL parameters
-        function getUrlParameter(name) {
-            const urlParams = new URLSearchParams(window.location.search);
-            return urlParams.get(name);
-        }
-
-        // Pre-populate prefix from URL parameter
-        const urlPrefix = getUrlParameter('prefix');
-        if (urlPrefix) {
-            const cleanPrefix = urlPrefix.trim().toUpperCase();
-            if (/^[0-9A-F]+$/.test(cleanPrefix) && cleanPrefix.length <= 8) {
-                targetPrefixInput.value = cleanPrefix;
-                updateDifficultyEstimate(cleanPrefix);
-                checkReservedPrefix(cleanPrefix);
-            }
-        } else {
-            // If no prefix on load, disable the button
-            generateBtn.disabled = true;
-        }
-
-        // Initialize the form
-        targetPrefixInput.focus();
-    </script>
+    <script src="./webgpu-ed25519.js"></script>
+    <script type="module" src="./app.js"></script>
 </body>
 </html>
